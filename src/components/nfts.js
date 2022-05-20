@@ -7,6 +7,7 @@ import {
   buyLand,
   fetchNftContractOwner,
   sellLand,
+  unSellLand
 } from "../utils/minter";
 import { Badge, Card, Stack, Row, Col } from "react-bootstrap";
 import { useContractKit } from "@celo-tools/use-contractkit";
@@ -89,6 +90,20 @@ const Nft = ({ minterContract }) => {
     }
   };
 
+  const unSell = async (index) => {
+    try {
+      setLoading(true);
+      await unSellLand(minterContract, index, performActions);
+      toast(<NotificationSuccess text="Updating NFT list...." />);
+      getAssets();
+    } catch (error) {
+      console.log(error);
+      toast(<NotificationError text="Failed to send NFT." />);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     try {
       if (address && minterContract) {
@@ -136,6 +151,9 @@ const Nft = ({ minterContract }) => {
                             </Card.Header>
                             <img src={_nft.image} alt="" />
                             <div className="card-body">
+                              {parseInt(_nft.seller.slice(0, 24)) !== 0 ?
+                                <p className="card-text">Seller: { truncateAddress(_nft.seller) }</p> : <></>
+                              }
                               <p className="card-text">{_nft.address}</p>
                               <p className="card-text">{_nft.description}</p>
                               <Row className="mt-2 mb-2">
@@ -154,16 +172,28 @@ const Nft = ({ minterContract }) => {
                               </Row>
                               <div className="d-flex justify-content-between align-items-center">
                                 <div className="btn-group">
-                                  {!_nft.sold ? (
-                                    <button
-                                      type="button"
-                                      className="btn btn-outline-primary"
-                                      onClick={() =>
-                                        buy(_nft.index, _nft.tokenId)
-                                      }
-                                    >
-                                      Buy
-                                    </button>
+                                  {(parseInt(_nft.seller.slice(0, 24)) !== 0) && !_nft.sold ? (
+                                     (_nft.seller === defaultAccount) ? (
+                                      <button
+                                        type="button"
+                                        className="btn btn-outline-primary"
+                                        onClick={() =>
+                                          unSell(_nft.index, _nft.tokenId)
+                                        }
+                                      >
+                                        Cancel Sale
+                                      </button>
+                                    ) : (
+                                      <button
+                                        type="button"
+                                        className="btn btn-outline-primary"
+                                        onClick={() =>
+                                          buy(_nft.index, _nft.tokenId)
+                                        }
+                                      >
+                                        Buy
+                                      </button>
+                                      )
                                   ) : defaultAccount === _nft.owner ? (
                                     <button
                                       type="button"
