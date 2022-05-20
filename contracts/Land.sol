@@ -33,7 +33,7 @@ contract LandNFT is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable {
     {
         uint256 tokenId = _tokenIdCounter.current();
         _tokenIdCounter.increment();
-        _mint(msg.sender, tokenId);
+        _safeMint(msg.sender, tokenId);
 
         _setTokenURI(tokenId, uri);
         createLand(tokenId, price);
@@ -45,13 +45,11 @@ contract LandNFT is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable {
         require(price > 0, "Price must be at least 1 wei");
         lands[tokenId] = Land(
             tokenId,
+            payable(address(0)),
             payable(msg.sender),
-            payable(address(this)),
             price,
             false
         );
-
-        _transfer(msg.sender, address(this), tokenId);
     }
 
     function buyLand(uint256 tokenId) public payable {
@@ -81,6 +79,18 @@ contract LandNFT is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable {
         _transfer(msg.sender, address(this), tokenId);
     }
 
+    function unSellLand(uint256 tokenId) public payable {
+        require(
+            lands[tokenId].seller == msg.sender,
+            "Only item owner can perform this operation"
+        );
+        lands[tokenId].owner = payable(msg.sender);
+        lands[tokenId].sold = true;
+        lands[tokenId].seller = payable(address(0));
+
+        _transfer(address(this), msg.sender, tokenId);
+    }
+
     function getLand(uint256 tokenId) public view returns (Land memory) {
         return lands[tokenId];
     }
@@ -88,7 +98,6 @@ contract LandNFT is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable {
     function getLandLength() public view returns (uint256) {
         return _tokenIdCounter.current();
     }
-
 
     // The following functions are overrides required by Solidity.
 

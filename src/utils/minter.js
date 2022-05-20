@@ -74,6 +74,7 @@ export const getLands = async (minterContract) => {
           index: i,
           tokenId: i,
           owner,
+          seller: land.seller,
           price: land.price,
           sold: land.sold,
           address: meta.data.address,
@@ -145,6 +146,19 @@ export const sellLand = async (minterContract, tokenId, performActions) => {
       const { defaultAccount } = kit;
       await minterContract.methods
         .sellLand(tokenId)
+        .send({ from: defaultAccount });
+    });
+  } catch (error) {
+    console.log({ error });
+  }
+};
+
+export const unSellLand = async (minterContract, tokenId, performActions) => {
+  try {
+    await performActions(async (kit) => {
+      const { defaultAccount } = kit;
+      await minterContract.methods
+        .unSellLand(tokenId)
         .send({ from: defaultAccount });
     });
   } catch (error) {
