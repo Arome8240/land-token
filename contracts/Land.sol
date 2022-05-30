@@ -12,7 +12,9 @@ contract LandNFT is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable {
 
     Counters.Counter private _tokenIdCounter;
 
-    constructor() ERC721("Lander", "LAND") {}
+    constructor() ERC721("Lander", "LAND"){
+    maxPerWallet = 1;
+    }
 
     uint256 owners = 0;
 
@@ -22,6 +24,8 @@ contract LandNFT is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable {
         address payable owner;
         uint256 price;
         bool sold;
+        uint256 public maxPerWallet;
+        mapping(address => uint256) public walletMints;
     }
 
     mapping(uint256 => Land) private lands;
@@ -37,6 +41,8 @@ contract LandNFT is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable {
 
         _setTokenURI(tokenId, uri);
         createLand(tokenId, price);
+        require(walletMints[msg.sender] + quantity_ <= maxPerWallet, 'exceeded max per wallet');
+
 
         return tokenId;
     }
